@@ -453,6 +453,10 @@
             <label for="input-alto">Alto (cm)</label>
             <input type="number" id="input-alto" value="100" min="10" max="600" placeholder="Ej. 100">
           </div>
+          <div class="form-group">
+            <label for="input-cantidad">Cantidad</label>
+            <input type="number" id="input-cantidad" value="1" min="1" placeholder="Ej. 5">
+          </div>
         </div>
 
         <!-- Caja de Información de Aproximación -->
@@ -692,6 +696,7 @@
       tieneMosquitero: false,
       color: 'base', // base, blanco, otros
       rejaTipo: 'r12', // r12, r16
+      cantidad: 1,
       total: 0,
       breakdown: {}
     };
@@ -776,7 +781,9 @@
           // 4. Mosquitero
           const priceMosquitero = currentBudget.tieneMosquitero ? item.mosquitero : 0;
 
-          total = windowWithColor + priceCortina + priceMosquitero;
+          // Aplicar cantidad al subtotal
+          const subtotal = (windowWithColor + priceCortina + priceMosquitero) * currentBudget.cantidad;
+          total = subtotal;
 
           breakdown = {
             base: priceBase,
@@ -785,7 +792,8 @@
             mosquitero: priceMosquitero,
             cortinaDisponible,
             standardW: item.w,
-            standardH: item.h
+            standardH: item.h,
+            quantity: currentBudget.cantidad
           };
         }
       } else if (p === 'puertas') {
@@ -797,11 +805,13 @@
 
           const basePrice = puerta.precio;
           const withColor = basePrice * colorMultiplier;
-          total = withColor;
+          const qty = currentBudget.cantidad;
+          total = withColor * qty;
 
           breakdown = {
             base: basePrice,
-            colorSurcharge: withColor - basePrice
+            colorSurcharge: withColor - basePrice,
+            quantity: qty
           };
           infoMsg = `Puerta de aluminio estándar (${puerta.tipo})`;
         }
@@ -817,12 +827,13 @@
             infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
           }
 
-          const price = currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16;
+          const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
           total = price;
           breakdown = {
             base: price,
             standardW: item.w,
-            standardH: item.h
+            standardH: item.h,
+            quantity: currentBudget.cantidad
           };
         }
       } else if (p === 'puertaRejas') {
@@ -837,12 +848,13 @@
             infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
           }
 
-          const price = currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16;
+          const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
           total = price;
           breakdown = {
             base: price,
             standardW: item.w,
-            standardH: item.h
+            standardH: item.h,
+            quantity: currentBudget.cantidad
           };
         }
       }
@@ -894,31 +906,29 @@
 
       if (p === 'ventanas') {
         const b = currentBudget.breakdown;
-        if (b.standardW !== currentBudget.ancho || b.standardH !== currentBudget.alto) {
-          breakdownEl.innerHTML += `<li class="warning-li"><span>Medida aproximada:</span> <strong>${b.standardW}x${b.standardH} cm</strong></li>`;
-        }
-        breakdownEl.innerHTML += `<li><span>Ventana Base (${currentBudget.serie.toUpperCase()}):</span> <strong>${formatPrice(b.base)}</strong></li>`;
+        const qty = currentBudget.cantidad;
+        breakdownEl.innerHTML += `<li><span>Ventana Base (${currentBudget.serie.toUpperCase()})${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.base * qty)}</strong></li>`;
         if (b.colorSurcharge > 0) {
           const colorLabel = currentBudget.color === 'blanco' ? 'Blanco (+10%)' : 'Negro/Madera (+30%)';
-          breakdownEl.innerHTML += `<li><span>Recargo Color (${colorLabel}):</span> <strong>${formatPrice(b.colorSurcharge)}</strong></li>`;
+          breakdownEl.innerHTML += `<li><span>Recargo Color (${colorLabel})${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.colorSurcharge * qty)}</strong></li>`;
         }
         if (currentBudget.tieneCortina) {
           if (b.cortinaDisponible) {
-            breakdownEl.innerHTML += `<li><span>Cortina de enrollar:</span> <strong>${formatPrice(b.cortina)}</strong></li>`;
+            breakdownEl.innerHTML += `<li><span>Cortina de enrollar${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.cortina * qty)}</strong></li>`;
           } else {
             breakdownEl.innerHTML += `<li class="warning-li"><span>Cortina de enrollar:</span> <strong>No disponible</strong></li>`;
           }
         }
         if (currentBudget.tieneMosquitero) {
-          breakdownEl.innerHTML += `<li><span>Mosquitero:</span> <strong>${formatPrice(b.mosquitero)}</strong></li>`;
+          breakdownEl.innerHTML += `<li><span>Mosquitero${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.mosquitero * qty)}</strong></li>`;
         }
         breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else if (p === 'puertas') {
         const b = currentBudget.breakdown;
-        breakdownEl.innerHTML += `<li><span>Puerta Aluminio (${currentBudget.puertaTipo}):</span> <strong>${formatPrice(b.base)}</strong></li>`;
+        breakdownEl.innerHTML += `<li><span>Puerta Aluminio (${currentBudget.puertaTipo})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(b.base * b.quantity)}</strong></li>`;
         if (b.colorSurcharge > 0) {
           const colorLabel = currentBudget.color === 'blanco' ? 'Blanco (+10%)' : 'Negro/Madera (+30%)';
-          breakdownEl.innerHTML += `<li><span>Recargo Color (${colorLabel}):</span> <strong>${formatPrice(b.colorSurcharge)}</strong></li>`;
+          breakdownEl.innerHTML += `<li><span>Recargo Color (${colorLabel})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(b.colorSurcharge * b.quantity)}</strong></li>`;
         }
         breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else {
@@ -927,7 +937,7 @@
         if (b.standardW !== currentBudget.ancho || b.standardH !== currentBudget.alto) {
           breakdownEl.innerHTML += `<li class="warning-li"><span>Medida aproximada:</span> <strong>${b.standardW}x${b.standardH} cm</strong></li>`;
         }
-        breakdownEl.innerHTML += `<li><span>${label} (${currentBudget.rejaTipo.toUpperCase()}):</span> <strong>${formatPrice(b.base)}</strong></li>`;
+        breakdownEl.innerHTML += `<li><span>${label} (${currentBudget.rejaTipo.toUpperCase()})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       }
 
       // Renderizar la lista de ítems agregados
@@ -956,8 +966,11 @@
 
           const descSpan = document.createElement('span');
           let extraInfo = '';
-          if (item.producto !== 'puertas' && (item.ancho !== item.breakdown.standardW || item.alto !== item.breakdown.standardH)) {
-            extraInfo = ` (Estándar: ${item.breakdown.standardW}x${item.breakdown.standardH} cm)`;
+          if (item.cantidad && item.cantidad > 1) extraInfo = ` (x${item.cantidad})`;
+          if (item.producto !== 'puertas') {
+            if (item.ancho !== item.breakdown.standardW || item.alto !== item.breakdown.standardH) {
+              extraInfo += ` (Estándar: ${item.breakdown.standardW}x${item.breakdown.standardH} cm)`;
+            }
           }
           descSpan.textContent = `${index + 1}. ${getItemDescription(item)}${extraInfo}`;
           descSpan.style.color = 'var(--text-primary)';
@@ -1011,18 +1024,22 @@
           msg += `*Medida:* ${currentBudget.ancho}x${currentBudget.alto} cm\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
           msg += `*Color:* ${colorText}\n`;
+          msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
           msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'Sí' : 'No'}\n`;
           msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'Sí' : 'No disponible') : 'No'}\n`;
         } else if (p === 'puertas') {
           msg += `*Producto:* Puerta de Aluminio (${currentBudget.puertaTipo})\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
           msg += `*Color:* ${colorText}\n`;
+          msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
         } else if (p === 'rejas') {
           msg += `*Producto:* Reja de Hierro (${currentBudget.rejaTipo.toUpperCase()})\n`;
           msg += `*Medida:* ${currentBudget.ancho}x${currentBudget.alto} cm\n`;
+          msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
         } else if (p === 'puertaRejas') {
           msg += `*Producto:* Puerta Reja de Hierro (${currentBudget.rejaTipo.toUpperCase()})\n`;
           msg += `*Medida:* ${currentBudget.ancho}x${currentBudget.alto} cm\n`;
+          msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
         }
         msg += `\n*Total Presupuesto:* ${formatPrice(currentBudget.total)}\n`;
       } else {
@@ -1030,6 +1047,7 @@
         
         addedItems.forEach((item, index) => {
           msg += `*${index + 1}) ${getItemDescription(item)}*\n`;
+          msg += `   *Cantidad:* ${item.cantidad}\n`;
           msg += `   *Precio:* ${formatPrice(item.total)}\n\n`;
         });
 
@@ -1052,6 +1070,10 @@
       // Listeners de Medidas
       const inputAncho = document.getElementById('input-ancho');
       const inputAlto = document.getElementById('input-alto');
+      document.getElementById('input-cantidad').addEventListener('input', (e) => {
+        currentBudget.cantidad = parseInt(e.target.value) || 1;
+        calculateBudget();
+      });
 
       inputAncho.addEventListener('input', (e) => {
         currentBudget.ancho = parseInt(e.target.value) || 0;
