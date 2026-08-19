@@ -665,8 +665,15 @@
       const dataset = DATABASE[type];
       if (!dataset) return null;
 
-      // Filtrar todos los que cubren o igualan las dimensiones ingresadas
-      const candidates = dataset.filter(item => item.w >= w && item.h >= h);
+      const minVal = Math.min(w, h);
+      const maxVal = Math.max(w, h);
+
+      // Filtrar todos los que cubren o igualan las dimensiones ingresadas (intercambiables)
+      const candidates = dataset.filter(item => {
+        const itemMin = Math.min(item.w, item.h);
+        const itemMax = Math.max(item.w, item.h);
+        return itemMin >= minVal && itemMax >= maxVal;
+      });
 
       if (candidates.length === 0) {
         // Si excede la base de datos, encontrar el máximo disponible para no romper la app
@@ -676,10 +683,12 @@
         return { item: fallback, isFallback: true };
       }
 
-      // Ordenar los candidatos primero por ancho, luego por alto
+      // Ordenar los candidatos primero por la dimensión mayor, luego por la menor
       candidates.sort((a, b) => {
-        if (a.w !== b.w) return a.w - b.w;
-        return a.h - b.h;
+        const maxA = Math.max(a.w, a.h);
+        const maxB = Math.max(b.w, b.h);
+        if (maxA !== maxB) return maxA - maxB;
+        return Math.min(a.w, a.h) - Math.min(b.w, b.h);
       });
 
       return { item: candidates[0], isFallback: false };
@@ -739,10 +748,14 @@
         
         if (match) {
           const item = match.item;
-          if (match.isFallback || item.w !== w || item.h !== h) {
-            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
-          } else {
+          const isExact = !match.isFallback && (
+            (item.w === w && item.h === h) ||
+            (item.w === h && item.h === w)
+          );
+          if (isExact) {
             infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
+          } else {
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           // 1. Obtener precio base de la serie elegida
@@ -821,10 +834,14 @@
         const match = findClosestStandard('rejas', w, h);
         if (match) {
           const item = match.item;
-          if (match.isFallback || item.w !== w || item.h !== h) {
-            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
-          } else {
+          const isExact = !match.isFallback && (
+            (item.w === w && item.h === h) ||
+            (item.w === h && item.h === w)
+          );
+          if (isExact) {
             infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
+          } else {
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
@@ -842,10 +859,14 @@
         const match = findClosestStandard('puertaRejas', w, h);
         if (match) {
           const item = match.item;
-          if (match.isFallback || item.w !== w || item.h !== h) {
-            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
-          } else {
+          const isExact = !match.isFallback && (
+            (item.w === w && item.h === h) ||
+            (item.w === h && item.h === w)
+          );
+          if (isExact) {
             infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
+          } else {
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
@@ -934,7 +955,9 @@
       } else {
         const b = currentBudget.breakdown;
         const label = p === 'rejas' ? 'Reja Standard' : 'Puerta Reja';
-        if (b.standardW !== currentBudget.ancho || b.standardH !== currentBudget.alto) {
+        const isExact = (b.standardW === currentBudget.ancho && b.standardH === currentBudget.alto) ||
+                        (b.standardW === currentBudget.alto && b.standardH === currentBudget.ancho);
+        if (!isExact) {
           breakdownEl.innerHTML += `<li class="warning-li"><span>Medida aproximada:</span> <strong>${b.standardW}x${b.standardH} cm</strong></li>`;
         }
         breakdownEl.innerHTML += `<li><span>${label} (${currentBudget.rejaTipo.toUpperCase()})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
@@ -968,7 +991,9 @@
           let extraInfo = '';
           if (item.cantidad && item.cantidad > 1) extraInfo = ` (x${item.cantidad})`;
           if (item.producto !== 'puertas') {
-            if (item.ancho !== item.breakdown.standardW || item.alto !== item.breakdown.standardH) {
+            const isExact = (item.ancho === item.breakdown.standardW && item.alto === item.breakdown.standardH) ||
+                            (item.ancho === item.breakdown.standardH && item.alto === item.breakdown.standardW);
+            if (!isExact) {
               extraInfo += ` (Estándar: ${item.breakdown.standardW}x${item.breakdown.standardH} cm)`;
             }
           }
