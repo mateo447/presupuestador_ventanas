@@ -109,6 +109,8 @@
       serie: 's20', // s20, s25
       tieneCortina: false,
       tieneMosquitero: false,
+      tieneDVH: false,
+      dolarValor: 40,
       color: 'base', // base, blanco, otros
       rejaTipo: 'r12', // r12, r16
       cantidad: 1,
@@ -127,6 +129,7 @@
         let extras = [];
         if (item.tieneCortina && b.cortinaDisponible) extras.push('con cortina');
         if (item.tieneMosquitero) extras.push('con mosquitero');
+        if (item.tieneDVH) extras.push('con DVH');
         const extraStr = extras.length > 0 ? ` (${extras.join(', ')})` : '';
         return `Ventana ${item.serie.toUpperCase()} ${item.ancho}x${item.alto} cm [${colorText}]${extraStr}`;
       } else if (p === 'puertas') {
@@ -200,8 +203,16 @@
           // 4. Mosquitero
           const priceMosquitero = currentBudget.tieneMosquitero ? item.mosquitero : 0;
 
+          // 5. DVH
+          let priceDVH = 0;
+          if (currentBudget.tieneDVH) {
+            const area = (w * h) / 10000;
+            const usdCost = Math.max(1, area) * 75;
+            priceDVH = usdCost * currentBudget.dolarValor;
+          }
+
           // Aplicar cantidad al subtotal
-          const subtotal = (windowWithColor + priceCortina + priceMosquitero) * currentBudget.cantidad;
+          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH) * currentBudget.cantidad;
           total = subtotal;
 
           breakdown = {
@@ -209,6 +220,7 @@
             colorSurcharge: windowWithColor - priceBase,
             cortina: priceCortina,
             mosquitero: priceMosquitero,
+            dvh: priceDVH,
             cortinaDisponible,
             standardW: item.w,
             standardH: item.h,
@@ -349,6 +361,9 @@
         if (currentBudget.tieneMosquitero) {
           breakdownEl.innerHTML += `<li><span>Mosquitero${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.mosquitero * qty)}</strong></li>`;
         }
+        if (currentBudget.tieneDVH) {
+          breakdownEl.innerHTML += `<li><span>Doble Vidrio HermÃ©tico (DVH)${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.dvh * qty)}</strong></li>`;
+        }
         breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este Ã­tem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else if (p === 'puertas') {
         const b = currentBudget.breakdown;
@@ -458,6 +473,7 @@
           msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
           msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'SÃ­' : 'No'}\n`;
           msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'SÃ­' : 'No disponible') : 'No'}\n`;
+          msg += `*DVH:* ${currentBudget.tieneDVH ? 'SÃ­' : 'No'}\n`;
         } else if (p === 'puertas') {
           msg += `*Producto:* Puerta de Aluminio (${currentBudget.puertaTipo})\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
@@ -529,6 +545,16 @@
 
       document.getElementById('check-mosquitero').addEventListener('change', (e) => {
         currentBudget.tieneMosquitero = e.target.checked;
+        calculateBudget();
+      });
+
+      document.getElementById('check-dvh').addEventListener('change', (e) => {
+        currentBudget.tieneDVH = e.target.checked;
+        calculateBudget();
+      });
+
+      document.getElementById('input-dolar').addEventListener('input', (e) => {
+        currentBudget.dolarValor = parseFloat(e.target.value) || 0;
         calculateBudget();
       });
 

@@ -466,12 +466,18 @@
 
         <!-- Opciones Específicas de Ventanas -->
         <div id="options-ventana" style="display: block;">
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label for="serie-select">Serie de Aluminio</label>
-            <select id="serie-select">
-              <option value="s20" selected>Serie 20</option>
-              <option value="s25">Serie 25</option>
-            </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 15px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="serie-select">Serie de Aluminio</label>
+              <select id="serie-select">
+                <option value="s20" selected>Serie 20</option>
+                <option value="s25">Serie 25</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="input-dolar">Valor del Dólar ($)</label>
+              <input type="number" id="input-dolar" value="40" min="1" placeholder="Ej. 40">
+            </div>
           </div>
           
           <div class="switch-group">
@@ -493,6 +499,17 @@
               </div>
               <label class="switch">
                 <input type="checkbox" id="check-mosquitero">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-item">
+              <div class="switch-label">
+                <span>Doble Vidrio Hermético (DVH)</span>
+                <span>Vidrio de doble panel aislante (U$S 75/m², mín 1m²)</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="check-dvh">
                 <span class="slider"></span>
               </label>
             </div>
@@ -703,6 +720,8 @@
       serie: 's20', // s20, s25
       tieneCortina: false,
       tieneMosquitero: false,
+      tieneDVH: false,
+      dolarValor: 40,
       color: 'base', // base, blanco, otros
       rejaTipo: 'r12', // r12, r16
       cantidad: 1,
@@ -721,6 +740,7 @@
         let extras = [];
         if (item.tieneCortina && b.cortinaDisponible) extras.push('con cortina');
         if (item.tieneMosquitero) extras.push('con mosquitero');
+        if (item.tieneDVH) extras.push('con DVH');
         const extraStr = extras.length > 0 ? ` (${extras.join(', ')})` : '';
         return `Ventana ${item.serie.toUpperCase()} ${item.ancho}x${item.alto} cm [${colorText}]${extraStr}`;
       } else if (p === 'puertas') {
@@ -794,8 +814,16 @@
           // 4. Mosquitero
           const priceMosquitero = currentBudget.tieneMosquitero ? item.mosquitero : 0;
 
+          // 5. DVH
+          let priceDVH = 0;
+          if (currentBudget.tieneDVH) {
+            const area = (w * h) / 10000;
+            const usdCost = Math.max(1, area) * 75;
+            priceDVH = usdCost * currentBudget.dolarValor;
+          }
+
           // Aplicar cantidad al subtotal
-          const subtotal = (windowWithColor + priceCortina + priceMosquitero) * currentBudget.cantidad;
+          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH) * currentBudget.cantidad;
           total = subtotal;
 
           breakdown = {
@@ -803,6 +831,7 @@
             colorSurcharge: windowWithColor - priceBase,
             cortina: priceCortina,
             mosquitero: priceMosquitero,
+            dvh: priceDVH,
             cortinaDisponible,
             standardW: item.w,
             standardH: item.h,
@@ -943,6 +972,9 @@
         if (currentBudget.tieneMosquitero) {
           breakdownEl.innerHTML += `<li><span>Mosquitero${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.mosquitero * qty)}</strong></li>`;
         }
+        if (currentBudget.tieneDVH) {
+          breakdownEl.innerHTML += `<li><span>Doble Vidrio Hermético (DVH)${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.dvh * qty)}</strong></li>`;
+        }
         breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else if (p === 'puertas') {
         const b = currentBudget.breakdown;
@@ -1052,6 +1084,7 @@
           msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
           msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'Sí' : 'No'}\n`;
           msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'Sí' : 'No disponible') : 'No'}\n`;
+          msg += `*DVH:* ${currentBudget.tieneDVH ? 'Sí' : 'No'}\n`;
         } else if (p === 'puertas') {
           msg += `*Producto:* Puerta de Aluminio (${currentBudget.puertaTipo})\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
@@ -1123,6 +1156,16 @@
 
       document.getElementById('check-mosquitero').addEventListener('change', (e) => {
         currentBudget.tieneMosquitero = e.target.checked;
+        calculateBudget();
+      });
+
+      document.getElementById('check-dvh').addEventListener('change', (e) => {
+        currentBudget.tieneDVH = e.target.checked;
+        calculateBudget();
+      });
+
+      document.getElementById('input-dolar').addEventListener('input', (e) => {
+        currentBudget.dolarValor = parseFloat(e.target.value) || 0;
         calculateBudget();
       });
 
