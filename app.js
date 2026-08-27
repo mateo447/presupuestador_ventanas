@@ -66,7 +66,9 @@
       ]
     };
 
-    // Encontrar la medida estÃ¡ndar mÃ¡s cercana (igual o superior)
+    const TOLERANCE = 5; // Tolerancia en cm para redondear a medidas estÃ¡ndar inferiores
+
+    // Encontrar la medida estÃ¡ndar mÃ¡s cercana (igual o superior, considerando tolerancia)
     function findClosestStandard(type, w, h) {
       const dataset = DATABASE[type];
       if (!dataset) return null;
@@ -74,11 +76,11 @@
       const minVal = Math.min(w, h);
       const maxVal = Math.max(w, h);
 
-      // Filtrar todos los que cubren o igualan las dimensiones ingresadas (intercambiables)
+      // Filtrar todos los que cubren o igualan las dimensiones ingresadas con la tolerancia aplicada (intercambiables)
       const candidates = dataset.filter(item => {
         const itemMin = Math.min(item.w, item.h);
         const itemMax = Math.max(item.w, item.h);
-        return itemMin >= minVal && itemMax >= maxVal;
+        return itemMin >= (minVal - TOLERANCE) && itemMax >= (maxVal - TOLERANCE);
       });
 
       if (candidates.length === 0) {
