@@ -501,7 +501,8 @@
         addedItems.forEach((item, index) => {
           msg += `*${index + 1}) ${getItemDescription(item)}*\n`;
           msg += `   *Cantidad:* ${item.cantidad}\n`;
-          msg += `   *Precio:* ${formatPrice(item.total)}\n\n`;
+          const unitPrice = item.total / item.cantidad;
+          msg += `   *Precio:* ${formatPrice(unitPrice)} c/u\n\n`;
         });
 
         msg += `*Total Presupuestado (${addedItems.length} ${addedItems.length === 1 ? 'artÃ­culo' : 'artÃ­culos'}):* ${formatPrice(overallTotal)}\n`;
