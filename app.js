@@ -465,7 +465,7 @@
 
     function generateClientMessage(overallTotal) {
       const formatPrice = (val) => `$ ${Math.round(val).toLocaleString('es-AR')}`;
-      let msg = `*PRESUPUESTO DETALLADO*\n\n`;
+      let msg = '';
 
       if (addedItems.length === 0) {
         const p = currentBudget.producto;
@@ -496,8 +496,6 @@
         }
         msg += `\n*Total Presupuesto:* ${formatPrice(currentBudget.total)}\n`;
       } else {
-        msg += `Estimado cliente, adjuntamos la cotizaciÃ³n de los artÃ­culos solicitados:\n\n`;
-        
         addedItems.forEach((item, index) => {
           msg += `*${index + 1}) ${getItemDescription(item)}*\n`;
           msg += `   *Cantidad:* ${item.cantidad}\n`;
@@ -508,7 +506,6 @@
         msg += `*Total Presupuestado (${addedItems.length} ${addedItems.length === 1 ? 'artÃ­culo' : 'artÃ­culos'}):* ${formatPrice(overallTotal)}\n`;
       }
       
-      msg += `\nQuedamos a las Ã³rdenes para cualquier consulta. Â¡Muchas gracias!`;
       document.getElementById('client-message-textarea').value = msg;
     }
 
