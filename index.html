@@ -624,35 +624,35 @@
     // Base de Datos de Precios y Medidas Estándar
     const DATABASE = {
       ventanas: [
-        { w: 50, h: 30, s20: 1450, s25: 1800, monoblok: 0, mosquitero: 550, probba: 3600, gala: 4400 },
-        { w: 60, h: 40, s20: 1750, s25: 2150, monoblok: 0, mosquitero: 600, probba: 4000, gala: 5000 },
-        { w: 80, h: 40, s20: 2000, s25: 2550, monoblok: 0, mosquitero: 750, probba: 4400, gala: 5500 },
-        { w: 80, h: 80, s20: 2450, s25: 3550, monoblok: 6400, mosquitero: 800, probba: 5500, gala: 7000 },
-        { w: 100, h: 40, s20: 2200, s25: 3200, monoblok: 0, mosquitero: 850, probba: 4800, gala: 6000 },
-        { w: 100, h: 50, s20: 2350, s25: 3400, monoblok: 0, mosquitero: 850, probba: 5100, gala: 6500 },
-        { w: 100, h: 60, s20: 2450, s25: 3600, monoblok: 6500, mosquitero: 900, probba: 5400, gala: 6800 },
-        { w: 100, h: 80, s20: 2550, s25: 4000, monoblok: 7000, mosquitero: 950, probba: 6000, gala: 7600 },
-        { w: 100, h: 100, s20: 2750, s25: 4300, monoblok: 7000, mosquitero: 1100, probba: 6500, gala: 8400 },
-        { w: 120, h: 50, s20: 2500, s25: 4100, monoblok: 7000, mosquitero: 1000, probba: 5500, gala: 7000 },
-        { w: 120, h: 60, s20: 2650, s25: 4200, monoblok: 7000, mosquitero: 1050, probba: 5800, gala: 7500 },
-        { w: 120, h: 80, s20: 2750, s25: 4300, monoblok: 7000, mosquitero: 1100, probba: 6300, gala: 8200 },
-        { w: 120, h: 100, s20: 3050, s25: 4650, monoblok: 7400, mosquitero: 1250, probba: 7000, gala: 9000 },
-        { w: 120, h: 120, s20: 3450, s25: 4850, monoblok: 7700, mosquitero: 1300, probba: 7400, gala: 9800 },
-        { w: 150, h: 50, s20: 3000, s25: 4300, monoblok: 7950, mosquitero: 1250, probba: 5900, gala: 7800 },
-        { w: 150, h: 60, s20: 3200, s25: 4650, monoblok: 8250, mosquitero: 1300, probba: 6400, gala: 8300 },
-        { w: 150, h: 80, s20: 3550, s25: 4950, monoblok: 9300, mosquitero: 1400, probba: 7000, gala: 9100 },
-        { w: 150, h: 100, s20: 3750, s25: 5200, monoblok: 9600, mosquitero: 1450, probba: 7600, gala: 9900 },
-        { w: 150, h: 120, s20: 4100, s25: 5850, monoblok: 10150, mosquitero: 1500, probba: 8200, gala: 10800 },
-        { w: 150, h: 150, s20: 5750, s25: 7150, monoblok: 12100, mosquitero: 1650, probba: 9000, gala: 12000 },
-        { w: 150, h: 200, s20: 6600, s25: 8700, monoblok: 17100, mosquitero: 3050, probba: 10600, gala: 14000 },
-        { w: 180, h: 100, s20: 5500, s25: 7600, monoblok: 11550, mosquitero: 1650, probba: 8300, gala: 11000 },
-        { w: 180, h: 120, s20: 5850, s25: 8250, monoblok: 12650, mosquitero: 1800, probba: 9000, gala: 11800 },
-        { w: 180, h: 150, s20: 6300, s25: 8600, monoblok: 15200, mosquitero: 2900, probba: 9900, gala: 13000 },
-        { w: 180, h: 200, s20: 0, s25: 9800, monoblok: 22000, mosquitero: 4000, probba: 11600, gala: 15200 },
-        { w: 200, h: 200, s20: 0, s25: 10350, monoblok: 23100, mosquitero: 4550, probba: 12000, gala: 16000 },
-        { w: 220, h: 200, s20: 0, s25: 11350, monoblok: 28600, mosquitero: 4950, probba: 12800, gala: 16800 },
-        { w: 250, h: 200, s20: 0, s25: 13200, monoblok: 33550, mosquitero: 5500, probba: 13700, gala: 17800 },
-        { w: 300, h: 200, s20: 0, s25: 14850, monoblok: 39600, mosquitero: 6050, probba: 15000, gala: 20000 }
+        { w: 50, h: 30, s20: 1450, s25: 1800, monoblok: 0, mosquitero: 550, probba: 3600, gala: 4400, mosquiteroPG: 900 },
+        { w: 60, h: 40, s20: 1750, s25: 2150, monoblok: 0, mosquitero: 600, probba: 4000, gala: 5000, mosquiteroPG: 900 },
+        { w: 80, h: 40, s20: 2000, s25: 2550, monoblok: 0, mosquitero: 750, probba: 4400, gala: 5500, mosquiteroPG: 950 },
+        { w: 80, h: 80, s20: 2450, s25: 3550, monoblok: 6400, mosquitero: 800, probba: 5500, gala: 7000, mosquiteroPG: 1100 },
+        { w: 100, h: 40, s20: 2200, s25: 3200, monoblok: 0, mosquitero: 850, probba: 4800, gala: 6000, mosquiteroPG: 1100 },
+        { w: 100, h: 50, s20: 2350, s25: 3400, monoblok: 0, mosquitero: 850, probba: 5100, gala: 6500, mosquiteroPG: 1200 },
+        { w: 100, h: 60, s20: 2450, s25: 3600, monoblok: 6500, mosquitero: 900, probba: 5400, gala: 6800, mosquiteroPG: 1300 },
+        { w: 100, h: 80, s20: 2550, s25: 4000, monoblok: 7000, mosquitero: 950, probba: 6000, gala: 7600, mosquiteroPG: 1400 },
+        { w: 100, h: 100, s20: 2750, s25: 4300, monoblok: 7000, mosquitero: 1100, probba: 6500, gala: 8400, mosquiteroPG: 1500 },
+        { w: 120, h: 50, s20: 2500, s25: 4100, monoblok: 7000, mosquitero: 1000, probba: 5500, gala: 7000, mosquiteroPG: 1400 },
+        { w: 120, h: 60, s20: 2650, s25: 4200, monoblok: 7000, mosquitero: 1050, probba: 5800, gala: 7500, mosquiteroPG: 1450 },
+        { w: 120, h: 80, s20: 2750, s25: 4300, monoblok: 7000, mosquitero: 1100, probba: 6300, gala: 8200, mosquiteroPG: 1500 },
+        { w: 120, h: 100, s20: 3050, s25: 4650, monoblok: 7400, mosquitero: 1250, probba: 7000, gala: 9000, mosquiteroPG: 1600 },
+        { w: 120, h: 120, s20: 3450, s25: 4850, monoblok: 7700, mosquitero: 1300, probba: 7400, gala: 9800, mosquiteroPG: 1700 },
+        { w: 150, h: 50, s20: 3000, s25: 4300, monoblok: 7950, mosquitero: 1250, probba: 5900, gala: 7800, mosquiteroPG: 1600 },
+        { w: 150, h: 60, s20: 3200, s25: 4650, monoblok: 8250, mosquitero: 1300, probba: 6400, gala: 8300, mosquiteroPG: 1700 },
+        { w: 150, h: 80, s20: 3550, s25: 4950, monoblok: 9300, mosquitero: 1400, probba: 7000, gala: 9100, mosquiteroPG: 1850 },
+        { w: 150, h: 100, s20: 3750, s25: 5200, monoblok: 9600, mosquitero: 1450, probba: 7600, gala: 9900, mosquiteroPG: 2000 },
+        { w: 150, h: 120, s20: 4100, s25: 5850, monoblok: 10150, mosquitero: 1500, probba: 8200, gala: 10800, mosquiteroPG: 2100 },
+        { w: 150, h: 150, s20: 5750, s25: 7150, monoblok: 12100, mosquitero: 1650, probba: 9000, gala: 12000, mosquiteroPG: 2400 },
+        { w: 150, h: 200, s20: 6600, s25: 8700, monoblok: 17100, mosquitero: 3050, probba: 10600, gala: 14000, mosquiteroPG: 3900 },
+        { w: 180, h: 100, s20: 5500, s25: 7600, monoblok: 11550, mosquitero: 1650, probba: 8300, gala: 11000, mosquiteroPG: 2400 },
+        { w: 180, h: 120, s20: 5850, s25: 8250, monoblok: 12650, mosquitero: 1800, probba: 9000, gala: 11800, mosquiteroPG: 2600 },
+        { w: 180, h: 150, s20: 6300, s25: 8600, monoblok: 15200, mosquitero: 2900, probba: 9900, gala: 13000, mosquiteroPG: 3700 },
+        { w: 180, h: 200, s20: 0, s25: 9800, monoblok: 22000, mosquitero: 4000, probba: 11600, gala: 15200, mosquiteroPG: 5000 },
+        { w: 200, h: 200, s20: 0, s25: 10350, monoblok: 23100, mosquitero: 4550, probba: 12000, gala: 16000, mosquiteroPG: 5800 },
+        { w: 220, h: 200, s20: 0, s25: 11350, monoblok: 28600, mosquitero: 4950, probba: 12800, gala: 16800, mosquiteroPG: 6000 },
+        { w: 250, h: 200, s20: 0, s25: 13200, monoblok: 33550, mosquitero: 5500, probba: 13700, gala: 17800, mosquiteroPG: 6800 },
+        { w: 300, h: 200, s20: 0, s25: 14850, monoblok: 39600, mosquitero: 6050, probba: 15000, gala: 20000, mosquiteroPG: 7000 }
       ],
       puertas: [
         { tipo: "vidrio entero", precio: 7600 },
@@ -841,7 +841,14 @@
           const windowWithColor = priceBase * colorMultiplier;
 
           // 4. Mosquitero
-          const priceMosquitero = currentBudget.tieneMosquitero ? item.mosquitero : 0;
+          let priceMosquitero = 0;
+          if (currentBudget.tieneMosquitero) {
+            let baseMosquitero = item.mosquitero;
+            if (currentBudget.serie === 'probba' || currentBudget.serie === 'gala') {
+              baseMosquitero = (item.mosquiteroPG || item.mosquitero) * 1.10;
+            }
+            priceMosquitero = baseMosquitero * colorMultiplier;
+          }
 
           // 5. DVH
           let priceDVH = 0;
