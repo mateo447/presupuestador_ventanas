@@ -1,4 +1,4 @@
-﻿// Base de Datos de Precios y Medidas EstÃ¡ndar
+// Base de Datos de Precios y Medidas Estándar
     const DATABASE = {
       ventanas: [
         { w: 50, h: 30, s20: 1450, s25: 1800, monoblok: 0, mosquitero: 550, probba: 3600, gala: 4400 },
@@ -66,9 +66,16 @@
       ]
     };
 
-    const TOLERANCE = 5; // Tolerancia en cm para redondear a medidas estÃ¡ndar inferiores
+    const TOLERANCE = 5; // Tolerancia en cm para redondear a medidas estándar inferiores
 
-    // Encontrar la medida estÃ¡ndar mÃ¡s cercana (igual o superior, considerando tolerancia)
+    const CERRADURA_PRECIOS = {
+      ninguna: 0,
+      comun: 1000,
+      monopunto: 2700,
+      bipunto: 4700
+    };
+
+    // Encontrar la medida estándar más cercana (igual o superior, considerando tolerancia)
     function findClosestStandard(type, w, h) {
       const dataset = DATABASE[type];
       if (!dataset) return null;
@@ -84,14 +91,14 @@
       });
 
       if (candidates.length === 0) {
-        // Si excede la base de datos, encontrar el mÃ¡ximo disponible para no romper la app
+        // Si excede la base de datos, encontrar el máximo disponible para no romper la app
         let maxW = Math.max(...dataset.map(i => i.w));
         let maxH = Math.max(...dataset.map(i => i.h));
         const fallback = dataset.find(item => item.w === maxW && item.h === maxH) || dataset[dataset.length - 1];
         return { item: fallback, isFallback: true };
       }
 
-      // Ordenar los candidatos primero por la dimensiÃ³n mayor, luego por la menor
+      // Ordenar los candidatos primero por la dimensión mayor, luego por la menor
       candidates.sort((a, b) => {
         const maxA = Math.max(a.w, a.h);
         const maxB = Math.max(b.w, b.h);
@@ -108,7 +115,8 @@
       ancho: 100,
       alto: 100,
       puertaTipo: 'vidrio entero',
-      serie: 's20', // s20, s25
+            serie: 's20', // s20, s25, probba, gala
+      cerradura: 'ninguna', // ninguna, comun, monopunto, bipunto
       tieneCortina: false,
       tieneMosquitero: false,
       tieneDVH: false,
@@ -122,7 +130,7 @@
 
     let addedItems = [];
 
-    // Encontrar la descripciÃ³n legible de un Ã­tem para la lista
+    // Encontrar la descripción legible de un ítem para la lista
     function getItemDescription(item) {
       const p = item.producto;
       const b = item.breakdown;
@@ -131,7 +139,10 @@
         let extras = [];
         if (item.tieneCortina && b.cortinaDisponible) extras.push('con cortina');
         if (item.tieneMosquitero) extras.push('con mosquitero');
-        if (item.tieneDVH) extras.push('con DVH');
+                if (item.tieneDVH) extras.push('con DVH');
+        if (item.cerradura === 'comun') extras.push('con cerradura común');
+        else if (item.cerradura === 'monopunto') extras.push('con cerradura monopunto sin llave');
+        else if (item.cerradura === 'bipunto') extras.push('con cerradura bipunto con llave');
         const extraStr = extras.length > 0 ? ` (${extras.join(', ')})` : '';
         return `Ventana ${item.serie.toUpperCase()} ${item.ancho}x${item.alto} cm [${colorText}]${extraStr}`;
       } else if (p === 'puertas') {
@@ -145,7 +156,7 @@
       return 'Producto';
     }
 
-    // FunciÃ³n principal de cÃ¡lculo del Ã­tem activo
+    // Función principal de cálculo del ítem activo
     function calculateBudget() {
       const p = currentBudget.producto;
       let total = 0;
@@ -164,9 +175,9 @@
             (item.w === h && item.h === w)
           );
           if (isExact) {
-            infoMsg = `Medida estÃ¡ndar exacta: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
           } else {
-            infoMsg = `Medida aproximada a estÃ¡ndar de: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           // 1. Obtener precio base de la serie elegida
@@ -217,8 +228,11 @@
             priceDVH = usdCost * currentBudget.dolarValor;
           }
 
+          // 6. Cerradura (Accesorio)
+          const priceCerradura = CERRADURA_PRECIOS[currentBudget.cerradura] || 0;
+
           // Aplicar cantidad al subtotal
-          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH) * currentBudget.cantidad;
+          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH + priceCerradura) * currentBudget.cantidad;
           total = subtotal;
 
           breakdown = {
@@ -227,6 +241,7 @@
             cortina: priceCortina,
             mosquitero: priceMosquitero,
             dvh: priceDVH,
+            cerradura: priceCerradura,
             cortinaDisponible,
             standardW: item.w,
             standardH: item.h,
@@ -250,7 +265,7 @@
             colorSurcharge: withColor - basePrice,
             quantity: qty
           };
-          infoMsg = `Puerta de aluminio estÃ¡ndar (${puerta.tipo})`;
+          infoMsg = `Puerta de aluminio estándar (${puerta.tipo})`;
         }
       } else if (p === 'rejas') {
         const w = currentBudget.ancho;
@@ -263,9 +278,9 @@
             (item.w === h && item.h === w)
           );
           if (isExact) {
-            infoMsg = `Medida estÃ¡ndar exacta: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
           } else {
-            infoMsg = `Medida aproximada a estÃ¡ndar de: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
@@ -288,9 +303,9 @@
             (item.w === h && item.h === w)
           );
           if (isExact) {
-            infoMsg = `Medida estÃ¡ndar exacta: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida estándar exacta: ${item.w}x${item.h} cm`;
           } else {
-            infoMsg = `Medida aproximada a estÃ¡ndar de: ${item.w}x${item.h} cm`;
+            infoMsg = `Medida aproximada a estándar de: ${item.w}x${item.h} cm`;
           }
 
           const price = (currentBudget.rejaTipo === 'r12' ? item.r12 : item.r16) * currentBudget.cantidad;
@@ -310,13 +325,13 @@
       updateUI(infoMsg);
     }
 
-    // Agregar Ã­tem actual a la lista
+    // Agregar ítem actual a la lista
     function addItemToBudget() {
       addedItems.push(JSON.parse(JSON.stringify(currentBudget)));
       calculateBudget();
     }
 
-    // Quitar un Ã­tem de la lista
+    // Quitar un ítem de la lista
     function removeItemFromBudget(index) {
       addedItems.splice(index, 1);
       calculateBudget();
@@ -339,13 +354,13 @@
       optReja.style.display = (p === 'rejas' || p === 'puertaRejas') ? 'block' : 'none';
       optColor.style.display = (p === 'ventanas' || p === 'puertas') ? 'block' : 'none';
 
-      // Mostrar mensaje de aproximaciÃ³n
+      // Mostrar mensaje de aproximación
       const infoEl = document.getElementById('approximation-info');
       infoEl.textContent = infoMsg;
 
       const formatPrice = (val) => `$ ${Math.round(val).toLocaleString('es-AR')}`;
 
-      // Desglosar resultados del Ã­tem activo
+      // Desglosar resultados del ítem activo
       const breakdownEl = document.getElementById('breakdown-list');
       breakdownEl.innerHTML = '';
 
@@ -368,9 +383,15 @@
           breakdownEl.innerHTML += `<li><span>Mosquitero${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.mosquitero * qty)}</strong></li>`;
         }
         if (currentBudget.tieneDVH) {
-          breakdownEl.innerHTML += `<li><span>Doble Vidrio HermÃ©tico (DVH)${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.dvh * qty)}</strong></li>`;
+          breakdownEl.innerHTML += `<li><span>Doble Vidrio Hermético (DVH)${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.dvh * qty)}</strong></li>`;
         }
-        breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este Ã­tem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
+        if (currentBudget.cerradura && currentBudget.cerradura !== 'ninguna') {
+          let cerraduraNombre = 'Cerradura común';
+          if (currentBudget.cerradura === 'monopunto') cerraduraNombre = 'Cerradura monopunto sin llave';
+          else if (currentBudget.cerradura === 'bipunto') cerraduraNombre = 'Cerradura bipunto con llave';
+          breakdownEl.innerHTML += `<li><span>${cerraduraNombre}${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.cerradura * qty)}</strong></li>`;
+        }
+        breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else if (p === 'puertas') {
         const b = currentBudget.breakdown;
         breakdownEl.innerHTML += `<li><span>Puerta Aluminio (${currentBudget.puertaTipo})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(b.base * b.quantity)}</strong></li>`;
@@ -378,7 +399,7 @@
           const colorLabel = currentBudget.color === 'blanco' ? 'Blanco (+10%)' : 'Negro/Madera (+30%)';
           breakdownEl.innerHTML += `<li><span>Recargo Color (${colorLabel})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(b.colorSurcharge * b.quantity)}</strong></li>`;
         }
-        breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este Ã­tem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
+        breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else {
         const b = currentBudget.breakdown;
         const label = p === 'rejas' ? 'Reja Standard' : 'Puerta Reja';
@@ -390,14 +411,14 @@
         breakdownEl.innerHTML += `<li><span>${label} (${currentBudget.rejaTipo.toUpperCase()})${b.quantity>1? ' x'+b.quantity : ''}:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       }
 
-      // Renderizar la lista de Ã­tems agregados
+      // Renderizar la lista de ítems agregados
       const itemsListEl = document.getElementById('items-list');
       itemsListEl.innerHTML = '';
       
       let overallTotal = 0;
 
       if (addedItems.length === 0) {
-        itemsListEl.innerHTML = `<li style="color: var(--text-secondary); text-align: center; justify-content: center;">NingÃºn Ã­tem agregado aÃºn</li>`;
+        itemsListEl.innerHTML = `<li style="color: var(--text-secondary); text-align: center; justify-content: center;">Ningún ítem agregado aún</li>`;
         overallTotal = 0; 
       } else {
         addedItems.forEach((item, index) => {
@@ -421,7 +442,7 @@
             const isExact = (item.ancho === item.breakdown.standardW && item.alto === item.breakdown.standardH) ||
                             (item.ancho === item.breakdown.standardH && item.alto === item.breakdown.standardW);
             if (!isExact) {
-              extraInfo += ` (EstÃ¡ndar: ${item.breakdown.standardW}x${item.breakdown.standardH} cm)`;
+              extraInfo += ` (Estándar: ${item.breakdown.standardW}x${item.breakdown.standardH} cm)`;
             }
           }
           descSpan.textContent = `${index + 1}. ${getItemDescription(item)}${extraInfo}`;
@@ -472,14 +493,25 @@
         const b = currentBudget.breakdown;
         
         if (p === 'ventanas') {
-          msg += `*Producto:* Ventana de Aluminio (${currentBudget.serie === 's20' ? 'Serie 20' : 'Serie 25'})\n`;
+          let serieLabel = 'Serie 20';
+          if (currentBudget.serie === 's25') serieLabel = 'Serie 25';
+          else if (currentBudget.serie === 'probba') serieLabel = 'Probba';
+          else if (currentBudget.serie === 'gala') serieLabel = 'Gala';
+          
+          msg += `*Producto:* Ventana de Aluminio (${serieLabel})\n`;
           msg += `*Medida:* ${currentBudget.ancho}x${currentBudget.alto} cm\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
           msg += `*Color:* ${colorText}\n`;
           msg += `*Cantidad:* ${currentBudget.cantidad}\n`;
-          msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'SÃ­' : 'No'}\n`;
-          msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'SÃ­' : 'No disponible') : 'No'}\n`;
-          msg += `*DVH:* ${currentBudget.tieneDVH ? 'SÃ­' : 'No'}\n`;
+          msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'Sí' : 'No'}\n`;
+          msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'Sí' : 'No disponible') : 'No'}\n`;
+          msg += `*DVH:* ${currentBudget.tieneDVH ? 'Sí' : 'No'}\n`;
+          if (currentBudget.cerradura && currentBudget.cerradura !== 'ninguna') {
+            let cerraduraText = 'Común ($1.000)';
+            if (currentBudget.cerradura === 'monopunto') cerraduraText = 'Monopunto sin llave ($2.700)';
+            else if (currentBudget.cerradura === 'bipunto') cerraduraText = 'Bipunto con llave ($4.700)';
+            msg += `*Cerradura:* ${cerraduraText}\n`;
+          }
         } else if (p === 'puertas') {
           msg += `*Producto:* Puerta de Aluminio (${currentBudget.puertaTipo})\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
@@ -503,13 +535,13 @@
           msg += `   *Precio:* ${formatPrice(unitPrice)} c/u\n\n`;
         });
 
-        msg += `*Total Presupuestado (${addedItems.length} ${addedItems.length === 1 ? 'artÃ­culo' : 'artÃ­culos'}):* ${formatPrice(overallTotal)}\n`;
+        msg += `*Total Presupuestado (${addedItems.length} ${addedItems.length === 1 ? 'artículo' : 'artículos'}):* ${formatPrice(overallTotal)}\n`;
       }
       
       document.getElementById('client-message-textarea').value = msg;
     }
 
-    // Configurar Event Listeners al cargar la pÃ¡gina
+    // Configurar Event Listeners al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
       // Listeners de Producto
       const productSelect = document.getElementById('product-select');
@@ -557,6 +589,11 @@
         calculateBudget();
       });
 
+      document.getElementById('cerradura-select').addEventListener('change', (e) => {
+        currentBudget.cerradura = e.target.value;
+        calculateBudget();
+      });
+
       document.getElementById('input-dolar').addEventListener('input', (e) => {
         currentBudget.dolarValor = parseFloat(e.target.value) || 0;
         calculateBudget();
@@ -590,10 +627,10 @@
         textarea.select();
         document.execCommand('copy');
         
-        // Feedback visual en el botÃ³n
+        // Feedback visual en el botón
         const btn = document.getElementById('btn-copy');
         const originalText = btn.textContent;
-        btn.textContent = 'Â¡Copiado! âœ“';
+        btn.textContent = '¡Copiado! ✓';
         btn.style.backgroundColor = '#10B981';
         setTimeout(() => {
           btn.textContent = originalText;
@@ -611,16 +648,16 @@
       const btnTheme = document.getElementById('btn-theme-toggle');
       if (localStorage.getItem('dark-mode') === 'enabled') {
         document.body.classList.add('dark-mode');
-        btnTheme.textContent = 'â˜€ï¸ Modo Claro';
+        btnTheme.textContent = '☀️ Modo Claro';
       }
       btnTheme.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         if (document.body.classList.contains('dark-mode')) {
           localStorage.setItem('dark-mode', 'enabled');
-          btnTheme.textContent = 'â˜€ï¸ Modo Claro';
+          btnTheme.textContent = '☀️ Modo Claro';
         } else {
           localStorage.setItem('dark-mode', 'disabled');
-          btnTheme.textContent = 'ðŸŒ“ Modo Oscuro';
+          btnTheme.textContent = '🌓 Modo Oscuro';
         }
       });
 

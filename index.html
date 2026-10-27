@@ -482,6 +482,16 @@
             </div>
           </div>
           
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="cerradura-select">Cerradura (Accesorio)</label>
+            <select id="cerradura-select">
+              <option value="ninguna" selected>Sin cerradura adicional ($0)</option>
+              <option value="comun">Cerradura común ($1.000)</option>
+              <option value="monopunto">Cerradura monopunto sin llave ($2.700)</option>
+              <option value="bipunto">Cerradura bipunto con llave ($4.700)</option>
+            </select>
+          </div>
+
           <div class="switch-group">
             <div class="switch-item">
               <div class="switch-label">
@@ -681,6 +691,13 @@
 
     const TOLERANCE = 5; // Tolerancia en cm para redondear a medidas estándar inferiores
 
+    const CERRADURA_PRECIOS = {
+      ninguna: 0,
+      comun: 1000,
+      monopunto: 2700,
+      bipunto: 4700
+    };
+
     // Encontrar la medida estándar más cercana (igual o superior, considerando tolerancia)
     function findClosestStandard(type, w, h) {
       const dataset = DATABASE[type];
@@ -721,7 +738,8 @@
       ancho: 100,
       alto: 100,
       puertaTipo: 'vidrio entero',
-      serie: 's20', // s20, s25
+            serie: 's20', // s20, s25, probba, gala
+      cerradura: 'ninguna', // ninguna, comun, monopunto, bipunto
       tieneCortina: false,
       tieneMosquitero: false,
       tieneDVH: false,
@@ -744,7 +762,10 @@
         let extras = [];
         if (item.tieneCortina && b.cortinaDisponible) extras.push('con cortina');
         if (item.tieneMosquitero) extras.push('con mosquitero');
-        if (item.tieneDVH) extras.push('con DVH');
+                if (item.tieneDVH) extras.push('con DVH');
+        if (item.cerradura === 'comun') extras.push('con cerradura común');
+        else if (item.cerradura === 'monopunto') extras.push('con cerradura monopunto sin llave');
+        else if (item.cerradura === 'bipunto') extras.push('con cerradura bipunto con llave');
         const extraStr = extras.length > 0 ? ` (${extras.join(', ')})` : '';
         return `Ventana ${item.serie.toUpperCase()} ${item.ancho}x${item.alto} cm [${colorText}]${extraStr}`;
       } else if (p === 'puertas') {
@@ -830,8 +851,11 @@
             priceDVH = usdCost * currentBudget.dolarValor;
           }
 
+          // 6. Cerradura (Accesorio)
+          const priceCerradura = CERRADURA_PRECIOS[currentBudget.cerradura] || 0;
+
           // Aplicar cantidad al subtotal
-          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH) * currentBudget.cantidad;
+          const subtotal = (windowWithColor + priceCortina + priceMosquitero + priceDVH + priceCerradura) * currentBudget.cantidad;
           total = subtotal;
 
           breakdown = {
@@ -840,6 +864,7 @@
             cortina: priceCortina,
             mosquitero: priceMosquitero,
             dvh: priceDVH,
+            cerradura: priceCerradura,
             cortinaDisponible,
             standardW: item.w,
             standardH: item.h,
@@ -983,6 +1008,12 @@
         if (currentBudget.tieneDVH) {
           breakdownEl.innerHTML += `<li><span>Doble Vidrio Hermético (DVH)${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.dvh * qty)}</strong></li>`;
         }
+        if (currentBudget.cerradura && currentBudget.cerradura !== 'ninguna') {
+          let cerraduraNombre = 'Cerradura común';
+          if (currentBudget.cerradura === 'monopunto') cerraduraNombre = 'Cerradura monopunto sin llave';
+          else if (currentBudget.cerradura === 'bipunto') cerraduraNombre = 'Cerradura bipunto con llave';
+          breakdownEl.innerHTML += `<li><span>${cerraduraNombre}${qty>1? ' x'+qty : ''}:</span> <strong>${formatPrice(b.cerradura * qty)}</strong></li>`;
+        }
         breakdownEl.innerHTML += `<li style="border-top: 1px solid var(--panel-border); margin-top: 5px; padding-top: 8px;"><span>Subtotal de este ítem:</span> <strong>${formatPrice(currentBudget.total)}</strong></li>`;
       } else if (p === 'puertas') {
         const b = currentBudget.breakdown;
@@ -1085,7 +1116,12 @@
         const b = currentBudget.breakdown;
         
         if (p === 'ventanas') {
-          msg += `*Producto:* Ventana de Aluminio (${currentBudget.serie === 's20' ? 'Serie 20' : 'Serie 25'})\n`;
+          let serieLabel = 'Serie 20';
+          if (currentBudget.serie === 's25') serieLabel = 'Serie 25';
+          else if (currentBudget.serie === 'probba') serieLabel = 'Probba';
+          else if (currentBudget.serie === 'gala') serieLabel = 'Gala';
+          
+          msg += `*Producto:* Ventana de Aluminio (${serieLabel})\n`;
           msg += `*Medida:* ${currentBudget.ancho}x${currentBudget.alto} cm\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
           msg += `*Color:* ${colorText}\n`;
@@ -1093,6 +1129,12 @@
           msg += `*Mosquitero:* ${currentBudget.tieneMosquitero ? 'Sí' : 'No'}\n`;
           msg += `*Cortina:* ${currentBudget.tieneCortina ? (b.cortinaDisponible ? 'Sí' : 'No disponible') : 'No'}\n`;
           msg += `*DVH:* ${currentBudget.tieneDVH ? 'Sí' : 'No'}\n`;
+          if (currentBudget.cerradura && currentBudget.cerradura !== 'ninguna') {
+            let cerraduraText = 'Común ($1.000)';
+            if (currentBudget.cerradura === 'monopunto') cerraduraText = 'Monopunto sin llave ($2.700)';
+            else if (currentBudget.cerradura === 'bipunto') cerraduraText = 'Bipunto con llave ($4.700)';
+            msg += `*Cerradura:* ${cerraduraText}\n`;
+          }
         } else if (p === 'puertas') {
           msg += `*Producto:* Puerta de Aluminio (${currentBudget.puertaTipo})\n`;
           let colorText = currentBudget.color === 'base' ? 'Natural/Gris' : (currentBudget.color === 'blanco' ? 'Blanco' : 'Negro o Madera');
@@ -1167,6 +1209,11 @@
 
       document.getElementById('check-dvh').addEventListener('change', (e) => {
         currentBudget.tieneDVH = e.target.checked;
+        calculateBudget();
+      });
+
+      document.getElementById('cerradura-select').addEventListener('change', (e) => {
+        currentBudget.cerradura = e.target.value;
         calculateBudget();
       });
 
